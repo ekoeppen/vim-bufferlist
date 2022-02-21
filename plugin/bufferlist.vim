@@ -20,8 +20,8 @@
 "= NEEDED:                                                                     =
 "=     map <silent> <F3> :call BufferList()<CR>                                =
 "= OPTIONAL:                                                                   =
-"=     let g:BufferListWidth = 25                                              =
-"=     let g:BufferListMaxWidth = 50                                           =
+"=     let g:BufferListHeight = 25                                              =
+"=     let g:BufferListMaxHeight = 50                                           =
 "=     hi BufferSelected term=reverse ctermfg=white ctermbg=red cterm=bold     =
 "=     hi BufferNormal term=NONE ctermfg=black ctermbg=darkcyan cterm=NONE     =
 "===============================================================================
@@ -31,12 +31,12 @@ if exists('g:BufferListLoaded')
 endif
 let g:BufferListLoaded = 1
 
-if !exists('g:BufferListWidth')
-  let g:BufferListWidth = 20
+if !exists('g:BufferListHeight')
+  let g:BufferListHeight = 10
 endif
 
-if !exists('g:BufferListMaxWidth')
-  let g:BufferListMaxWidth = 40
+if !exists('g:BufferListMaxHeight')
+  let g:BufferListMaxHeight = 40
 endif
 
 " toggled the buffer list on/off
@@ -53,7 +53,7 @@ function! BufferList()
   let l:activebufline = 0
   let l:buflist = ''
   let l:bufnumbers = ''
-  let l:width = g:BufferListWidth
+  let l:height = g:BufferListHeight
 
   " iterate through the buffers
   let l:i = 0 | while l:i <= l:bufcount | let l:i = l:i + 1
@@ -61,16 +61,6 @@ function! BufferList()
     if strlen(l:bufname)
       \&& getbufvar(l:i, '&modifiable')
       \&& getbufvar(l:i, '&buflisted')
-
-      " adapt width and/or buffer name
-      if l:width < (strlen(l:bufname) + 5)
-        if strlen(l:bufname) + 5 < g:BufferListMaxWidth
-          let l:width = strlen(l:bufname) + 5
-        else
-          let l:width = g:BufferListMaxWidth
-          let l:bufname = '...' . strpart(l:bufname, strlen(l:bufname) - g:BufferListMaxWidth + 8)
-        endif
-      endif
 
       if bufwinnr(l:i) != -1
         let l:bufname = l:bufname . '*'
@@ -86,11 +76,6 @@ function! BufferList()
       if l:activebuf == l:i
         let l:activebufline = l:displayedbufs
       endif
-      " fill the name with spaces --> gives a nice selection bar
-      " use MAX width here, because the width may change inside of this 'for' loop
-      while strlen(l:bufname) < g:BufferListMaxWidth
-        let l:bufname = l:bufname . ' '
-      endwhile
       " add the name to the list
       let l:buflist = l:buflist . '  ' .l:bufname . "\n"
     endif
@@ -99,12 +84,12 @@ function! BufferList()
   " Generate a variable full of non-breaking spaces
   " to fill the buffer afterwards" (we need this for "full window" color :)
   let l:fill = "\n"
-  let l:i = 0 | while l:i < l:width | let l:i = l:i + 1
+  let l:i = 0 | while l:i < l:height | let l:i = l:i + 1
     let l:fill = ' ' . l:fill
   endwhile
 
   " now, create the buffer & set it up
-  exec 'silent! ' . l:width . 'vne __BUFFERLIST__'
+  exec 'silent! ' . l:height . 'new __BUFFERLIST__'
   setlocal noshowcmd
   setlocal noswapfile
   setlocal buftype=nofile
@@ -115,13 +100,11 @@ function! BufferList()
   setlocal nonumber
 
   " set up syntax highlighting
-  if has("syntax")
-    syn clear
-    syn match BufferNormal /  .*/
-    syn match BufferSelected /> .*/hs=s+1
-    hi def BufferNormal ctermfg=black ctermbg=white
-    hi def BufferSelected ctermfg=white ctermbg=black
-  endif
+  syn clear
+  syn match BufferNormal /  .*/
+  syn match BufferSelected /> .*/
+  hi def BufferNormal ctermfg=black ctermbg=white
+  hi def BufferSelected ctermfg=red ctermbg=black
 
   " Disable highlighting spaces at the end of the line, if
   " https://github.com/ntpeters/vim-better-whitespace is installed
